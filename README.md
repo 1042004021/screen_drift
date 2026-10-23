@@ -1,12 +1,12 @@
 # 整屏惯性漂移 · Screen Drift
 
-基于 Root 的 Android 整屏惯性漂移实验项目。通过传感器驱动显示投影偏移，实现手机移动时画面随惯性漂移的效果。**独立 KernelSU 模块，无 APK，不依赖 Xposed，不与魔法手指合并。**
+基于 Root 的 Android 整屏惯性漂移实验项目。通过传感器驱动显示投影偏移，实现手机移动时画面随惯性漂移的效果。**独立 Root 模块，无 APK，不依赖 Xposed，不与魔法手指合并。**
 
 ## Beta 下载与兼容限制
 
-[下载 v0.1.0-beta](https://github.com/1042004021/screen_drift/releases/tag/v0.1.0-beta)：选择 `screen-drift-kernelsu-0.1.0-beta.zip`，不要刷入 GitHub 自动生成的 Source code ZIP。附件 `SHA256SUMS` 可校验安装包。
+[下载 v0.1.0-beta](https://github.com/1042004021/screen_drift/releases/tag/v0.1.0-beta)：按Root框架选择 `screen-drift-kernelsu-0.1.0-beta.zip`、`screen-drift-magisk-0.1.0-beta.zip` 或 `screen-drift-apatch-0.1.0-beta.zip`。不要刷入 GitHub 自动生成的 Source code ZIP。附件 `SHA256SUMS` 可校验安装包。三包模块ID均为 `screen_drift`，同一手机只选一种。
 
-**仅针对小米15、SM8750、Android 16 / API36、1200×2670、Flyme 移植 ROM 进行过目标机实验。安装脚本保留 API36、SM8750、物理屏幕尺寸限制；满足这些条件也不保证 ROM 兼容。** 当前仅发布 KernelSU 模块，Magisk / APatch 未做适配或验证。
+**仅针对小米15、SM8750、Android 16 / API36、1200×2670、Flyme 移植 ROM、KernelSU 进行过目标机实验。安装脚本保留 API36、SM8750、物理屏幕尺寸限制；满足这些条件也不保证 ROM 兼容。** Magisk / APatch包已完成脚本及结构检查，未实机验证安装、开机或权限；APatch包为APModule。请通过对应管理器安装，不承诺Recovery刷入。
 
 ## 功能与验证边界
 
@@ -22,7 +22,7 @@
 
 1. 先停止电脑端漂移实验或其他漂移后端，避免同时运行。
 2. 建议保留 USB 调试、电脑连接和适用于设备的救援方式。
-3. 在 KernelSU 管理器安装 Beta 模块 ZIP，重启生效。
+3. 在对应Root框架管理器安装 Beta 模块 ZIP，重启生效。
 4. 首次使用检查点击位置、滑动、熄屏、旋转及恢复情况，发现异常立即停止使用。
 
 **停用或卸载模块后必须重启，不承诺即时恢复。** 如果界面无法操作，需通过设备 / KernelSU 支持的安全模式或已有救援方法禁用模块；不能假定断开电脑后总能自动恢复。
@@ -35,7 +35,9 @@
 
 ```sh
 sh build.sh
-python3 package_module.py
+python3 package_module.py --target kernelsu
+python3 package_module.py --target magisk
+python3 package_module.py --target apatch
 ```
 
 构建包含离线物理算法、控制器检查；模块打包检查 shell 语法及 ZIP 完整性，不能替代实机验收。

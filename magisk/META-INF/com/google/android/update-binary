@@ -1,0 +1,17 @@
+#!/sbin/sh
+umask 022
+OUTFD=$2
+ZIPFILE=$3
+export OUTFD ZIPFILE
+ui_print() { echo "$1"; }
+if [ ! -f /data/adb/magisk/util_functions.sh ]; then
+    ui_print "Magisk utilities not found. Install through the Magisk app."
+    exit 1
+fi
+. /data/adb/magisk/util_functions.sh
+if [ "${MAGISK_VER_CODE:-0}" -lt 20400 ]; then
+    ui_print "Magisk 20.4+ required. Use a version compatible with Android 16."
+    exit 1
+fi
+install_module
+exit $?

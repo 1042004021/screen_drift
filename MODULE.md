@@ -2,6 +2,8 @@
 
 ## 0.1.0-beta 发布
 
+补充Magisk/APatch独立包，共用原DEX、配置和服务脚本，不修改漂移算法与安装条件。Magisk添加加载设备已有util_functions.sh的META-INF入口；APatch采用APModule根目录结构。仅完成包结构/脚本检查，未实机验证这两种框架。三包ID相同，按实际框架选一种安装。使用`python3 package_module.py --target kernelsu|magisk|apatch`分别打包。
+
 模块版本0.1.0-beta，versionCode=2，安装包为`screen-drift-kernelsu-0.1.0-beta.zip`。保留原设备限制和参数，不改显示算法。用户确认过动态实验手感，但本Beta未重新安装到手机，开机、触摸映射、功耗及异常恢复未完整验收。发布安装包与SHA256校验；下方实验版文件名及状态属于历史记录。
 
 ## 产物

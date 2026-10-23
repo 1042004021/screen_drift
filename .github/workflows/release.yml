@@ -1,6 +1,10 @@
 name: Publish Beta
 on:
   push:
+    branches: [main]
+    paths:
+      - 'release-assets/**'
+      - '.github/workflows/release.yml'
     tags:
       - 'v*'
 permissions:
@@ -16,33 +20,51 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            const tag = context.ref.replace('refs/tags/', '');
+            const tag = context.ref.startsWith('refs/tags/') ? context.ref.replace('refs/tags/', '') : 'v0.1.0-beta';
             if (tag !== 'v0.1.0-beta') throw new Error('Prepare matching assets first');
-            const release = await github.rest.repos.createRelease({
+            const params = {
               owner: context.repo.owner, repo: context.repo.repo,
               tag_name: tag, name: `整屏惯性漂移 ${tag} · Beta 测试版`,
               draft: false, prerelease: true,
               body: [
-                '## KernelSU Beta 测试版',
+                '## KernelSU / Magisk / APatch Beta 测试版',
                 '无 APK，独立 Root 整屏惯性漂移模块。不与魔法手指合并。',
                 '',
                 '### 兼容与风险',
                 '- 仅针对小米15 SM8750、Android16/API36、1200×2670 Flyme移植ROM进行过目标机实验。保留API、SoC及尺寸安装限制，不代表所有满足条件的ROM兼容。',
                 '- 用户确认过动态实验手感；本Beta未重新安装回归。开机、触摸对齐、旋转/熄屏恢复、异常恢复、长期功耗未完整验收。',
                 '- 显示偏移存在黑边与裁切；退出Killed/137为已知问题。',
-                '- 不支持将本包当作已验证的Magisk/APatch模块。',
+                '- 提供KernelSU、Magisk、APatch独立安装包，共用后端；Magisk/APatch未实机验证安装、启动与权限行为。',
                 '',
                 '### 安装与回退',
-                '先停止电脑实验后端，在KernelSU管理器安装screen-drift-kernelsu-0.1.0-beta.zip并重启。首次使用保留USB调试和设备救援方式。停用或卸载后必须重启；界面无法操作时使用设备/KernelSU支持的安全模式或已有救援方法禁用模块。',
+                '先停止电脑实验后端，按实际Root框架选择kernelsu、magisk或apatch中的一个ZIP，通过对应管理器安装并重启。三包模块ID相同，不可同时安装。APatch为APModule；不承诺Recovery安装。首次使用保留USB调试和设备救援方式。停用或卸载后必须重启；界面无法操作时使用对应Root框架/设备支持的安全模式或已有救援方法禁用模块。',
                 'SHA256SUMS提供校验。Source code ZIP不能刷入。详见README.md、MODULE.md与USAGE.md。'
               ].join('\n')
-            });
+            };
+            let release;
+            try {
+              release = await github.rest.repos.getReleaseByTag({owner: context.repo.owner, repo: context.repo.repo, tag});
+              release = await github.rest.repos.updateRelease({...params, release_id: release.data.id});
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              release = await github.rest.repos.createRelease(params);
+            }
             const fs = require('fs');
             const dir = `release-assets/${tag}`;
+            const existing = await github.paginate(github.rest.repos.listReleaseAssets, {
+              owner: context.repo.owner, repo: context.repo.repo, release_id: release.data.id
+            });
             for (const name of fs.readdirSync(dir)) {
+              const data = fs.readFileSync(`${dir}/${name}`);
+              const previous = existing.find(asset => asset.name === name);
+              if (previous) {
+                const digest = 'sha256:' + require('crypto').createHash('sha256').update(data).digest('hex');
+                if (previous.digest === digest) continue;
+                await github.rest.repos.deleteReleaseAsset({owner: context.repo.owner, repo: context.repo.repo, asset_id: previous.id});
+              }
               await github.rest.repos.uploadReleaseAsset({
                 owner: context.repo.owner, repo: context.repo.repo,
                 release_id: release.data.id, name,
-                data: fs.readFileSync(`${dir}/${name}`)
+                data
               });
             }
